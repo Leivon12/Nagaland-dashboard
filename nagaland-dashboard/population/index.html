@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <!-- PERSON 1: Change this title -->
+  <title>Population, Births & Deaths — Nagaland</title>
+
+  <!-- SheetJS: reads .xlsx files in the browser, no backend needed -->
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      background: #1a2e4a;
+      color: white;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .topbar a {
+      color: #93c5fd;
+      text-decoration: none;
+      font-size: 0.85rem;
+    }
+
+    .topbar a:hover { text-decoration: underline; }
+
+    .topbar h1 {
+      font-size: 1rem;
+      font-weight: 600;
+      flex: 1;
+    }
+
+    /* ── Controls bar ── */
+    .controls {
+      background: #ffffff;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      flex-wrap: wrap;
+    }
+
+    .controls label {
+      font-size: 0.85rem;
+      color: #475569;
+      font-weight: 600;
+    }
+
+    .controls select {
+      padding: 7px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      color: #1e293b;
+      background: white;
+      min-width: 220px;
+      cursor: pointer;
+    }
+
+    .controls select:focus {
+      outline: none;
+      border-color: #2563eb;
+    }
+
+    #sheet-info {
+      margin-left: auto;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+
+    /* ── Main content ── */
+    .content {
+      padding: 24px;
+    }
+
+    #sheet-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #1a2e4a;
+      margin-bottom: 16px;
+    }
+
+    /* ── Table wrapper: scrollable ── */
+    .table-wrap {
+      overflow-x: auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.82rem;
+    }
+
+    thead tr {
+      background: #1a2e4a;
+      color: white;
+    }
+
+    thead th {
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    tbody tr:nth-child(even) { background: #f8fafc; }
+    tbody tr:hover { background: #e0f2fe; }
+
+    tbody td {
+      padding: 8px 14px;
+      border-bottom: 1px solid #e2e8f0;
+      white-space: nowrap;
+      color: #334155;
+    }
+
+    /* ── States ── */
+    #status {
+      padding: 40px;
+      text-align: center;
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top navigation bar -->
+  <div class="topbar">
+    <a href="../index.html">← Home</a>
+    <!-- PERSON 1: Change this heading to match your file -->
+    <h1>📊 Population, Births & Deaths — Nagaland</h1>
+  </div>
+
+  <!-- Sheet selector -->
+  <div class="controls">
+    <label for="sheet-select">Sheet:</label>
+    <select id="sheet-select" disabled>
+      <option>Loading...</option>
+    </select>
+    <span id="sheet-info"></span>
+  </div>
+
+  <!-- Table area -->
+  <div class="content">
+    <div id="sheet-title"></div>
+    <div id="status">Loading Excel file…</div>
+    <div class="table-wrap" id="table-container"></div>
+  </div>
+
+  <script>
+    // ─────────────────────────────────────────────
+    // PERSON 1: Change this to your Excel filename
+    // Make sure the .xlsx file is in the SAME folder as this index.html
+    const EXCEL_FILE = '1_Population_Births__Deaths_Related_2024.xlsx';
+    // ─────────────────────────────────────────────
+
+    let workbook = null;
+
+    const select      = document.getElementById('sheet-select');
+    const container   = document.getElementById('table-container');
+    const status      = document.getElementById('status');
+    const sheetTitle  = document.getElementById('sheet-title');
+    const sheetInfo   = document.getElementById('sheet-info');
+
+    // Load the Excel file when the page opens
+    async function loadWorkbook() {
+      try {
+        const res = await fetch(EXCEL_FILE);
+        if (!res.ok) throw new Error(`Could not load file: ${res.status}`);
+
+        const buffer  = await res.arrayBuffer();
+        workbook      = XLSX.read(buffer, { type: 'array' });
+
+        // Populate the dropdown with sheet names
+        select.innerHTML = '';
+        workbook.SheetNames.forEach(name => {
+          const opt   = document.createElement('option');
+          opt.value   = name;
+          opt.textContent = name;
+          select.appendChild(opt);
+        });
+
+        select.disabled = false;
+        status.textContent = '';
+
+        // Auto-load the first sheet
+        renderSheet(workbook.SheetNames[0]);
+
+      } catch (err) {
+        status.textContent = `Error: ${err.message}. Make sure the .xlsx file is in the same folder.`;
+      }
+    }
+
+    // Render a sheet as an HTML table
+    function renderSheet(sheetName) {
+      const sheet = workbook.Sheets[sheetName];
+      const rows  = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+      container.innerHTML = '';
+
+      if (!rows || rows.length === 0) {
+        container.innerHTML = '<p style="padding:20px;color:#94a3b8">This sheet appears to be empty.</p>';
+        return;
+      }
+
+      // Update info labels
+      sheetTitle.textContent = sheetName;
+      sheetInfo.textContent  = `${rows.length} rows`;
+
+      const table = document.createElement('table');
+
+      // First row → table header
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      (rows[0] || []).forEach(cell => {
+        const th = document.createElement('th');
+        th.textContent = cell ?? '';
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      // Remaining rows → table body
+      const tbody = document.createElement('tbody');
+      rows.slice(1).forEach(row => {
+        const tr = document.createElement('tr');
+        // Use length of header row to keep columns aligned
+        const colCount = rows[0].length;
+        for (let i = 0; i < colCount; i++) {
+          const td = document.createElement('td');
+          td.textContent = row[i] ?? '';
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+
+      container.appendChild(table);
+    }
+
+    // When user picks a different sheet
+    select.addEventListener('change', () => {
+      renderSheet(select.value);
+    });
+
+    // Kick everything off
+    loadWorkbook();
+  </script>
+
+</body>
+</html>

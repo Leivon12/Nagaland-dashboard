@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nagaland Data Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      color: #1a2e4a;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    header p {
+      margin-top: 8px;
+      color: #5a7a99;
+      font-size: 1rem;
+    }
+
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      justify-content: center;
+      max-width: 960px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 32px 28px;
+      width: 280px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.18s, box-shadow 0.18s;
+      border-top: 4px solid #ccc;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.13);
+    }
+
+    .card.annual  { border-color: #2563eb; }
+    .card.disaster{ border-color: #dc2626; }
+    .card.population { border-color: #16a34a; }
+
+    .card .icon {
+      font-size: 2.2rem;
+      margin-bottom: 14px;
+    }
+
+    .card h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #1a2e4a;
+      margin-bottom: 8px;
+    }
+
+    .card p {
+      font-size: 0.88rem;
+      color: #5a7a99;
+      line-height: 1.5;
+    }
+
+    .card .sheets {
+      margin-top: 14px;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+
+    footer {
+      margin-top: 56px;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Nagaland Data Dashboard</h1>
+    <p>Statistical data explorer — select a dataset to begin</p>
+  </header>
+
+  <div class="cards">
+
+    <a href="annual_report/index.html" class="card annual">
+      <div class="icon">📊</div>
+      <h2>Annual Report 2023</h2>
+      <p>Tables from the Nagaland Annual Report covering district-wise statistics.</p>
+      <div class="sheets">27 sheets</div>
+    </a>
+
+    <a href="disaster/index.html" class="card disaster">
+      <div class="icon">⚠️</div>
+      <h2>Disaster Statistics</h2>
+      <p>Accident and disaster data including power, SDRF, agriculture, and forest.</p>
+      <div class="sheets">15 sheets</div>
+    </a>
+
+    <a href="population/index.html" class="card population">
+      <div class="icon">👥</div>
+      <h2>Population, Births & Deaths</h2>
+      <p>2024 data on population distribution, sex ratio, births, and death records.</p>
+      <div class="sheets">23 sheets</div>
+    </a>
+
+  </div>
+
+  <footer>Nagaland · Statistical Data · 2023–2024</footer>
+
+</body>
+</html>
