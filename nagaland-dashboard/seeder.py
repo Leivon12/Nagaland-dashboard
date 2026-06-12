@@ -5,12 +5,8 @@ from app import app
 from database import db
 from models import District, RegistrationStat
 
-<<<<<<< Updated upstream
 BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
 EXCEL_FILE = os.path.join(BASE_DIR, 'annual_report', 'Tables_Annual_Report_2023_(Nagaland).xlsx')
-=======
-EXCEL_FILE = 'annual_report/Tables_Annual_Report_2023_(Nagaland).xlsx'
->>>>>>> Stashed changes
 YEAR = 2023
 
 SHEETS = {
