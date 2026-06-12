@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Annual Report 2023 — Nagaland</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      background: #1a2e4a;
+      color: white;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .topbar a {
+      color: #93c5fd;
+      text-decoration: none;
+      font-size: 0.85rem;
+    }
+
+    .topbar h1 {
+      font-size: 1rem;
+      font-weight: 600;
+      flex: 1;
+    }
+
+    .controls {
+      background: #ffffff;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      flex-wrap: wrap;
+    }
+
+    .controls label {
+      font-size: 0.85rem;
+      color: #475569;
+      font-weight: 600;
+    }
+
+    .controls select {
+      padding: 7px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      color: #1e293b;
+      background: white;
+      min-width: 180px;
+      cursor: pointer;
+    }
+
+    #sheet-info {
+      margin-left: auto;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+
+    .content { padding: 24px; }
+
+    #sheet-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #1a2e4a;
+      margin-bottom: 16px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.82rem;
+    }
+
+    thead tr { background: #1a2e4a; color: white; }
+
+    thead th {
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    tbody tr:nth-child(even) { background: #f8fafc; }
+    tbody tr:hover { background: #e0f2fe; }
+
+    tbody td {
+      padding: 8px 14px;
+      border-bottom: 1px solid #e2e8f0;
+      white-space: nowrap;
+      color: #334155;
+    }
+
+    #status {
+      padding: 40px;
+      text-align: center;
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <a href="../index.html">← Home</a>
+    <h1>📊 Annual Report 2023 — Nagaland</h1>
+  </div>
+
+  <div class="controls">
+    <label for="district-select">District:</label>
+    <select id="district-select">
+      <option value="">All Districts</option>
+    </select>
+
+    <label for="area-filter">Area:</label>
+    <select id="area-filter">
+      <option value="">All</option>
+      <option value="Rural">Rural</option>
+      <option value="Urban">Urban</option>
+    </select>
+
+    <span id="sheet-info"></span>
+  </div>
+
+  <div class="content">
+    <div id="sheet-title"></div>
+    <div id="status">Loading...</div>
+    <div class="table-wrap" id="table-container"></div>
+  </div>
+
+  <script>
+    const API = 'http://localhost:5000';
+
+    const districtSelect = document.getElementById('district-select');
+    const areaFilter     = document.getElementById('area-filter');
+    const container      = document.getElementById('table-container');
+    const status         = document.getElementById('status');
+    const sheetTitle     = document.getElementById('sheet-title');
+    const sheetInfo      = document.getElementById('sheet-info');
+
+    // Load districts into dropdown
+    async function loadDistricts() {
+      const res       = await fetch(`${API}/api/districts`);
+      const districts = await res.json();
+
+      districts.forEach(d => {
+        const opt       = document.createElement('option');
+        opt.value       = d.id;
+        opt.textContent = d.name;
+        districtSelect.appendChild(opt);
+      });
+
+      loadStats();
+    }
+
+    // Fetch stats from API and render
+    async function loadStats() {
+      status.textContent  = 'Loading...';
+      container.innerHTML = '';
+
+      const districtId = districtSelect.value;
+      const areaType   = areaFilter.value;
+
+      let url = `${API}/api/stats?`;
+      if (districtId) url += `district_id=${districtId}&`;
+      if (areaType)   url += `area_type=${areaType}`;
+
+      const res   = await fetch(url);
+      const stats = await res.json();
+
+      status.textContent         = '';
+      sheetTitle.textContent     = 'Vital Statistics — Registration Data 2023';
+      sheetInfo.textContent      = `${stats.length} records`;
+
+      if (stats.length === 0) {
+        container.innerHTML = '<p style="padding:20px;color:#94a3b8">No records found.</p>';
+        return;
+      }
+
+      renderTable(stats);
+    }
+
+    // Render JSON array as HTML table
+    function renderTable(data) {
+  // Define the order you want
+  const headers = [
+    'district', 'area_type', 'year',
+    'census_population', 'reg_units',
+    'returns_due', 'returns_received',
+    'est_midyear_pop_total', 'est_midyear_pop_adjusted'
+  ];
+
+  const table = document.createElement('table');
+  const thead = document.createElement('thead');
+  const tbody = document.createElement('tbody');
+
+  const headerRow = document.createElement('tr');
+  headers.forEach(h => {
+    const th       = document.createElement('th');
+    th.textContent = h.replace(/_/g, ' ').toUpperCase();
+    headerRow.appendChild(th);
+  });
+  thead.appendChild(headerRow);
+
+  data.forEach(row => {
+    const tr = document.createElement('tr');
+    headers.forEach(h => {
+      const td       = document.createElement('td');
+      td.textContent = row[h] ?? '';
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(thead);
+  table.appendChild(tbody);
+  container.appendChild(table);
+}
+
+    districtSelect.addEventListener('change', loadStats);
+    areaFilter.addEventListener('change', loadStats);
+
+    loadDistricts();
+  </script>
+
+</body>
+</html>
